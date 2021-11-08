@@ -1,0 +1,21 @@
+{
+  "name": "mezunian",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "server": "node server/index.js",
+    "build": "node server/build.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "markdown-it": "^12.2.0",
+    "pg": "^8.7.1",
+    "react": "^17.0.2"
+  }
+}
