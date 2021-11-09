@@ -1,5 +1,6 @@
 const fs = require( `fs` );
 const MarkdownIt = require( `markdown-it` );
+const path = require( `path` );
 
 module.exports = () => new Promise( ( resolve, reject ) => {
     fs.readdir( `posts`, ( err, files ) => {
@@ -35,6 +36,7 @@ module.exports = () => new Promise( ( resolve, reject ) => {
                     }, {} );
                     const body = md.render( text.substr( headerEnd + 4 ) );
                     post.content = body;
+                    post.slug = path.parse( file ).name;
                     resolve( post );
                 });
             });

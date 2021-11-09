@@ -12,32 +12,47 @@ fs.readFile( `./config.json`, ( err, data ) => {
 		throw err;
 	}
 
-	app.get( `/`, ( req, res ) => {
-		a = data.toString();
-		try {
-			const b = JSON.parse( a );
-			data = b;
-		}
-		catch ( err ) {
-			console.log( a );
-		}
-		console.log( data );
-		db.connect();
-		db.getPosts().then( ( posts ) => {
-			db.close();
-			data.posts = posts;
-			console.log( data );
-			res.send( baseTemplate( data ) );
-		})
-    });
+	a = data.toString();
+	try {
+		const b = JSON.parse( a );
+		data = b;
+	}
+	catch ( err ) {
+		console.log( a );
+	}
 
-    app.get( `*`, ( req, res ) => {
-        res.status( 404 );
-        res.send( `404 George` );
-    });
+	const serverErrorPage = function() {
+		res.status( 500 );
+		res.send( `ahhhh!` );
+	};
+
+	app.get( `/`, ( req, res ) => {
+		db.connect().then( () => {
+			db.getPosts().then( ( posts ) => {
+				db.close();
+				data.posts = posts;
+				res.send( baseTemplate( data ) );
+			}).catch( serverErrorPage );
+		}).catch( serverErrorPage );
+	});
+
+	app.get( `*`, ( req, res ) => {
+		db.connect().then( () => {
+			const paths = req.path.replace( /^\//, `` ).replace( /\/$/, `` ).split( `/` );
+			const path = paths.pop();
+			db.getPostBySlug( path ).then( ( posts ) => {
+				db.close();
+				data.posts = posts;
+				res.send( baseTemplate( data ) );
+			});
+			//res.status( 404 );
+			//res.send( `404 George` );
+		}).catch( serverErrorPage );
+	});
 
     const port = 3000;
     const server = app.listen( port, () => {
         console.log( `Listening on http://localhost:${port}` );
     });
+	
 });
