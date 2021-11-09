@@ -1,5 +1,8 @@
-const loadPosts = require( `./load-posts` );
-const db = require( `./db` );
+const loadPosts = require( `../src/load-posts` );
+const db = require( `../src/db` );
+const path = require( `path` );
+
+require( `dotenv` ).config( { path: path.resolve( process.cwd(), '.env.admin' ) } );
 
 db.connect();
 db.clearPosts().then( () => {

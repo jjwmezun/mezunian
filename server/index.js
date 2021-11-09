@@ -1,7 +1,7 @@
 const express = require( `express` );
-const baseTemplate = require( `./views/base` );
+const baseTemplate = require( `../views/base` );
 const fs = require( `fs` );
-const db = require( `./db` );
+const db = require( `../src/db` );
 
 require( `dotenv` ).config();
 
@@ -13,7 +13,15 @@ fs.readFile( `./config.json`, ( err, data ) => {
 	}
 
 	app.get( `/`, ( req, res ) => {
-		data = JSON.parse( data );
+		a = data.toString();
+		try {
+			const b = JSON.parse( a );
+			data = b;
+		}
+		catch ( err ) {
+			console.log( a );
+		}
+		console.log( data );
 		db.connect();
 		db.getPosts().then( ( posts ) => {
 			db.close();

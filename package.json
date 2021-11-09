@@ -6,7 +6,7 @@
   "scripts": {
     "server": "node server/index.js",
     "build": "node server/build.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +17,8 @@
     "markdown-it": "^12.2.0",
     "pg": "^8.7.1",
     "react": "^17.0.2"
+  },
+  "devDependencies": {
+    "jest": "^27.3.1"
   }
 }

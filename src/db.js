@@ -18,26 +18,32 @@ module.exports = {
     clearPosts: () => new Promise( ( resolve, reject ) => {
         client.query( `truncate post`, ( err, res ) => {
             if ( err ) {
-                throw err;
+                reject( err );
             }
-            resolve( res );
+            else {
+                resolve( res );
+            }
         });
     }),
     createPost: ( post ) => new Promise( ( resolve, reject ) => {
         client.query( `insert into post (title, content) VALUES ( $1, $2 )`, [ post.title, post.content ], ( err, res ) => {
             if ( err ) {
-                throw err;
+                reject( err );
             }
-            console.log( `¡“${ post.title }” successfully created!` );
-            resolve( res );
+            else {
+                resolve( res );
+            }
         });
     }),
     getPosts: () => new Promise( ( resolve, reject ) => {
         client.query( `select * from post`, ( err, res ) => {
             if ( err ) {
-                throw err;
+                reject( err );
             }
-            resolve( res.rows );
+            else {
+                resolve( res.rows );
+            }
         });
-    })
+    }),
+    test: () => 1 + 2
 };
