@@ -3,6 +3,7 @@ module.exports = ( data ) => {
         title: data.title,
         slug: data.slug,
         content: data.content,
-        pubdate: new Date( data.pubdate )
+        pubdate: new Date( data.pubdate ),
+        categories: []
     };
 };

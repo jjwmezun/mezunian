@@ -1,5 +1,6 @@
 const { Client } = require( `pg` );
 const createPost = require( `./post` );
+const { slugify } = require( `./utilities` );
 
 let client;
 
@@ -23,9 +24,19 @@ const tables = Object.freeze([
     {
         name: `post_category`,
         columns: {},
-        references: [ `post` ]
+        references: [ `post`, `category` ]
     }
 ]);
+
+
+const insertCategory = ( postId, catId, resolve, reject ) => client.query( `insert into post_category (post_id, category_id) VALUES ( $1, $2 )`, [ postId, catId ], ( err, res ) => {
+    if ( err ) {
+        reject( err );
+    }
+    else {
+        resolve( res );
+    }
+});
 
 module.exports = {
     connect: () => {
@@ -54,10 +65,20 @@ module.exports = {
         for ( const table of tables ) {
             const columns = [ `${ table.name }_id serial primary key` ].concat( Object.keys( table.columns ).map( key => `${ key } ${ table.columns[ key ] }`) );
             if ( table.references ) {
-                columns.push( `${ table.references[ 0 ] }_id int` );
-                columns.push( `constraint fk_${ table.references[ 0 ] } foreign key( ${ table.references[ 0 ] }_id ) references ${ table.references[ 0 ] }( ${ table.references[ 0 ] }_id )` );
+                for ( const ref of table.references ) {
+                    columns.push( `${ ref }_id int` );
+                    columns.push( `constraint fk_${ ref } foreign key( ${ ref }_id ) references ${ ref }( ${ ref }_id )` );
+                }
             }
             await new Promise( ( resolve, reject ) => client.query( `create table ${ table.name } ( ${ columns.join( `, ` ) } )`, ( err, res ) => {
+                if ( err ) {
+                    reject( err );
+                }
+                else {
+                    resolve( res );
+                }
+            })).catch( reason => masterReject( reason ) );
+            await new Promise( ( resolve, reject ) => client.query( `grant select on ${ table.name } to mezunian`, ( err, res ) => {
                 if ( err ) {
                     reject( err );
                 }
@@ -68,34 +89,90 @@ module.exports = {
         };
         masterResolve();
     }).catch( reason => { throw reason; } ),
-    clearPosts: () => new Promise( ( resolve, reject ) => {
-        client.query( `truncate post`, ( err, res ) => {
-            if ( err ) {
-                reject( err );
-            }
-            else {
-                resolve( res );
-            }
-        });
+    clearData: () => new Promise( async ( masterResolve, masterReject ) => {
+        for ( const table of tables ) {
+            await new Promise( ( resolve, reject ) => client.query( `truncate ${ table.name } cascade`, ( err, res ) => {
+                if ( err ) {
+                    reject( err );
+                }
+                else {
+                    resolve( res );
+                }
+            })).catch( reason => masterReject( reason ) );
+        };
+        masterResolve();
     }),
     createPost: ( post ) => new Promise( ( resolve, reject ) => {
         const pubDate = new Date( post.date );
-        client.query( `insert into post (title, content, pubdate, slug) VALUES ( $1, $2, $3, $4 )`, [ post.title, post.content, pubDate, post.slug ], ( err, res ) => {
+        if ( post.categories ) {
+            post.categories = post.categories.split( /,\s?/ );
+        }
+        client.query( `insert into post (title, content, pubdate, slug) VALUES ( $1, $2, $3, $4 ) returning post_id`, [ post.title, post.content, pubDate, post.slug ], async ( err, res ) => {
             if ( err ) {
                 reject( err );
             }
             else {
+                const postId = res.rows[ 0 ].post_id;
+                if ( post.categories ) {
+                    for ( const cat of post.categories ) {
+                        await new Promise( ( resolve, reject ) => client.query( `select category_id from category where title = $1`, [ cat ], ( err, res ) => {
+                            if ( err ) {
+                                reject( err );
+                            }
+                            else {
+                                if ( res.rows.length <= 0 ) {
+                                    client.query( `insert into category (title, slug) VALUES ( $1, $2 ) returning category_id`, [ cat, slugify( cat ) ], ( err, res ) => {
+                                        if ( err ) {
+                                            reject( err );
+                                        }
+                                        else {
+                                            const catId = res.rows[ 0 ][ `category_id` ];
+                                            insertCategory( postId, catId, resolve, reject );
+                                        }
+                                    });
+                                }
+                                else {
+                                    const catId = res.rows[ 0 ][ `category_id` ];
+                                    insertCategory( postId, catId, resolve, reject );
+                                    resolve( res );
+                                }
+                            }
+                        }));
+                    }
+                }
                 resolve( res );
             }
         });
     }),
     getPosts: () => new Promise( ( resolve, reject ) => {
-        client.query( `select * from post`, ( err, res ) => {
+        client.query( `select * from post`, async ( err, res ) => {
             if ( err ) {
                 reject( err );
             }
             else {
-                resolve( res.rows );
+                return Promise.all( res.rows.map( post => new Promise( ( resolve, reject ) => {
+                    client.query( `select * from post_category where post_id = $1`, [ post.post_id ], ( err, res ) => {
+                        if ( err ) {
+                            reject( err );
+                        }
+                        else {
+                            post.categories = [];
+                            Promise.all( res.rows.map( cat => new Promise( ( resolveB, rejectB ) => {
+                                client.query( `select * from category where category_id = $1`, [ cat.category_id ], ( err, res ) => {
+                                    if ( err ) {
+                                        rejectB( err );
+                                    }
+                                    else {
+                                        if ( res.rows.length > 0 ) {
+                                            post.categories.push( res.rows[ 0 ] );
+                                        }
+                                        resolveB();
+                                    }
+                                });
+                            }))).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
+                        }
+                    });
+                }))).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
             }
         });
     }),

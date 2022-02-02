@@ -21,9 +21,9 @@ fs.readFile( `./config.json`, ( err, data ) => {
 		console.log( a );
 	}
 
-	const serverErrorPage = function() {
+	const serverErrorPage = function( res, reason ) {
 		res.status( 500 );
-		res.send( `ahhhh!` );
+		res.send( reason );
 	};
 
 	app.get( `/`, ( req, res ) => {
@@ -31,9 +31,10 @@ fs.readFile( `./config.json`, ( err, data ) => {
 			db.getPosts().then( ( posts ) => {
 				db.close();
 				data.posts = posts;
+				res.status( 200 );
 				res.send( baseTemplate( data ) );
-			}).catch( serverErrorPage );
-		}).catch( serverErrorPage );
+			}).catch( reason => serverErrorPage( res, reason ) );
+		}).catch( reason => serverErrorPage( res, reason ) );
 	});
 
 	app.get( `*`, ( req, res ) => {
@@ -47,7 +48,7 @@ fs.readFile( `./config.json`, ( err, data ) => {
 			});
 			//res.status( 404 );
 			//res.send( `404 George` );
-		}).catch( serverErrorPage );
+		}).catch( reason => serverErrorPage( res, reason ) );
 	});
 
     const port = 3000;

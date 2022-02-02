@@ -15,6 +15,16 @@ module.exports = ( data ) => `
                     <div>
                         ${ post.content }
                     </div>
+                    <h3>Categories:</h3>
+                    <ul>
+                        ${
+                            ( post.categories ) ?
+                            post.categories.reduce(
+                                ( sum, cat ) => `${ sum }<li>${ cat.title }</li>`,
+                                ``
+                            ) : ``
+                        }
+                    </ul>
                 </article>
             `,
             ``
