@@ -37,6 +37,20 @@ fs.readFile( `./config.json`, ( err, data ) => {
 		}).catch( reason => serverErrorPage( res, reason ) );
 	});
 
+	app.get( `/category/*`, ( req, res ) => {
+		db.connect().then( () => {
+			const paths = req.path.replace( /^\//, `` ).replace( /\/$/, `` ).split( `/` );
+			const path = paths.pop();
+			db.getCategoryBySlug( path ).then( ( cats ) => {
+				db.getPostsByCategory( cats[ 0 ] ).then( ( posts ) => {
+					db.close();
+					data.posts = posts;
+					res.send( baseTemplate( data ) );
+				}).catch( reason => serverErrorPage( res, reason ) );
+			}).catch( reason => serverErrorPage( res, reason ) );
+		}).catch( reason => serverErrorPage( res, reason ) );
+	});
+
 	app.get( `*`, ( req, res ) => {
 		db.connect().then( () => {
 			const paths = req.path.replace( /^\//, `` ).replace( /\/$/, `` ).split( `/` );

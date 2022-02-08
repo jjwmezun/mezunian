@@ -38,6 +38,30 @@ const insertCategory = ( postId, catId, resolve, reject ) => client.query( `inse
     }
 });
 
+const getPostData = posts => Promise.all( posts.map( post => new Promise( ( resolve, reject ) => {
+    client.query( `select * from post_category where post_id = $1`, [ post.post_id ], ( err, res ) => {
+        if ( err ) {
+            reject( err );
+        }
+        else {
+            post.categories = [];
+            Promise.all( res.rows.map( cat => new Promise( ( resolveB, rejectB ) => {
+                client.query( `select * from category where category_id = $1`, [ cat.category_id ], ( err, res ) => {
+                    if ( err ) {
+                        rejectB( err );
+                    }
+                    else {
+                        if ( res.rows.length > 0 ) {
+                            post.categories.push( res.rows[ 0 ] );
+                        }
+                        resolveB();
+                    }
+                });
+            }))).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
+        }
+    });
+})));
+
 module.exports = {
     connect: () => {
         client = new Client({
@@ -150,29 +174,7 @@ module.exports = {
                 reject( err );
             }
             else {
-                return Promise.all( res.rows.map( post => new Promise( ( resolve, reject ) => {
-                    client.query( `select * from post_category where post_id = $1`, [ post.post_id ], ( err, res ) => {
-                        if ( err ) {
-                            reject( err );
-                        }
-                        else {
-                            post.categories = [];
-                            Promise.all( res.rows.map( cat => new Promise( ( resolveB, rejectB ) => {
-                                client.query( `select * from category where category_id = $1`, [ cat.category_id ], ( err, res ) => {
-                                    if ( err ) {
-                                        rejectB( err );
-                                    }
-                                    else {
-                                        if ( res.rows.length > 0 ) {
-                                            post.categories.push( res.rows[ 0 ] );
-                                        }
-                                        resolveB();
-                                    }
-                                });
-                            }))).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
-                        }
-                    });
-                }))).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
+                getPostData( res.rows ).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
             }
         });
     }),
@@ -182,7 +184,37 @@ module.exports = {
                 reject( err );
             }
             else {
+                getPostData( res.rows ).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
+            }
+        });
+    }),
+    getCategoryBySlug: ( slug ) => new Promise( ( resolve, reject ) => {
+        client.query( `select * from category where slug = $1`, [ slug ], ( err, res ) => {
+            if ( err ) {
+                reject( err );
+            }
+            else {
                 resolve( res.rows );
+            }
+        });
+    }),
+    getPostsByCategory: ( cat ) => new Promise( ( resolve, reject ) => {
+        client.query( `select * from post_category where category_id = $1`, [ cat.category_id ], ( err, res ) => {
+            if ( err ) {
+                reject( err );
+            }
+            else {
+                const postIds = res.rows.map( i => i.post_id );
+                Promise.all( postIds.map( i => new Promise( ( err, res ) => {
+                    client.query( `select * from post where post_id = $1`, [ i ], ( err, res ) => {
+                        if ( err ) {
+                            reject( err );
+                        }
+                        else {
+                            getPostData( res.rows ).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
+                        }
+                    });
+                }))).then( res => resolve( [].concat.apply( [], res ) ) );
             }
         });
     })

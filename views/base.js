@@ -20,7 +20,7 @@ module.exports = ( data ) => `
                         ${
                             ( post.categories ) ?
                             post.categories.reduce(
-                                ( sum, cat ) => `${ sum }<li>${ cat.title }</li>`,
+                                ( sum, cat ) => `${ sum }<li><a href="/category/${ cat.slug }/">${ cat.title }</a></li>`,
                                 ``
                             ) : ``
                         }
