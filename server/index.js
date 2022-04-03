@@ -1,7 +1,7 @@
 const express = require( `express` );
 const { readFile } = require( `fs` );
 const db = require( `../src/db` );
-const { getConfig } = require( `../src/utilities` );
+const getConfig = require( `../src/config` );
 const baseTemplate = require( `../views/base`);
 
 require( `dotenv` ).config();

@@ -2,6 +2,7 @@ const loadPosts = require( `../src/load-posts` );
 const db = require( `../src/db` );
 const path = require( `path` );
 const { lstat, readdir, rmdir, unlink } = require( `fs` );
+const { createHTMLForHome, createHTMLFromCategory, createHTMLFromPost } = require( `../src/html` );
 
 require( `dotenv` ).config( { path: path.resolve( process.cwd(), '.env.admin' ) } );
 
@@ -45,10 +46,10 @@ readdir( `html`, ( err, files ) => {
 				loadPosts().then( posts => {
 					Promise.all( posts.map( post => db.createPost( post ) ) ).then( () => {
 						db.getPosts().then( posts => {
-							db.createHTMLForHome( posts ).then( () => {
-								Promise.all( posts.map( post => db.createHTMLFromPost( post ) ) ).then( posts => {
+							createHTMLForHome( posts ).then( () => {
+								Promise.all( posts.map( post => createHTMLFromPost( post ) ) ).then( posts => {
 									db.getCategories().then( cats => {
-										Promise.all( cats.map( cat => db.createHTMLFromCategory( cat ) ) ).then( cats => {
+										Promise.all( cats.map( cat => createHTMLFromCategory( cat ) ) ).then( cats => {
 											db.close();
 										});
 									});

@@ -1,4 +1,4 @@
-const { all, cond } = require( `../src/utilities` );
+const { all, cond, getPostRoute, getCategoryRoute } = require( `../src/utilities` );
 const postTemplate = require( `./partials/post` );
 
 module.exports = ( data ) => `
@@ -24,7 +24,52 @@ module.exports = ( data ) => `
                     <input type="submit" value="Search" />
                 </form>
             </header>
-            ${ all( data.posts, postTemplate ) }
+            <main>
+                ${ all( data.posts, postTemplate ) }
+            </main>
+            <aside>${ cond( data.site.latest && data.site.latest.length > 0, `
+                <section>
+                    <h3>Recent Posts</h3>
+                    <ul>${ all( data.site.latest, post => `
+                        <li><a href="${ getPostRoute( post ) }">${ post.title }</a></li>
+                    `)}</ul>
+                </section>`
+                )}${ cond( data.site.archive, `
+                <section>
+                    <h3>Archive</h3>
+                    <ul>${ all( data.site.archive, ( data, year ) => `
+                        <li>
+                            ${ year } ( ${ data.postCount } )
+                            <ul>
+                                ${ all( data.months, ( data, month ) => `
+                                    <li>
+                                        ${ data.monthName } ( ${ data.posts.length } )
+                                        <ul>
+                                            ${ all( data.posts, post => `
+                                                <li><a href="${ getPostRoute( post ) }">${ post.title }</a></li>
+                                            `)}
+                                        </ul>
+                                    </li>
+                                `)}
+                            </ul>
+                        </li>
+                    `)}</ul>
+                </section>
+                ${ cond( data.site.categories, `
+                <section>
+                    <h3>Categories</h3>
+                    <ul>${ all( data.site.categories, cat => `
+                        <li><a href="${ getCategoryRoute( cat ) }">${ cat.title }</a></li>
+                    `)}</ul>
+                </section>`)}
+                ${ cond( data.site.links, `
+                <section>
+                    <h3>My Other Sites</h3>
+                    <ul>${ all( data.site.links, link => `
+                        <li><a href="${ link.href }">${ link.title }</a></li>
+                    `)}</ul>
+                </section>` )}`
+            )}</aside>
         </body>
     </html>
 `;

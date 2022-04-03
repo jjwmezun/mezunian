@@ -1,7 +1,17 @@
 {
     "site": {
         "title": "The Mezunian",
-        "tagline": "Die Positivität ist das Opium des Volkes, aber der Spott ist das Opium der Verrückten"
+        "tagline": "Die Positivität ist das Opium des Volkes, aber der Spott ist das Opium der Verrückten",
+        "links": [
+            {
+                "href": "https://www.boskeopolis-stories.com",
+                "title": "Boskeopolis Stories"
+            },
+            {
+                "href": "https://www.mega-microstories.com",
+                "title": "¡Mega Microstories!"
+            }
+        ]
     },
     "menus": {
         "header": [

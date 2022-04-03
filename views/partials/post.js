@@ -1,9 +1,9 @@
-const { all, getDateRoute } = require( `../../src/utilities` );
+const { all, getCategoryRoute, getPostRoute } = require( `../../src/utilities` );
 
 module.exports = post => `
     <article>
-        <h1><a href="/${ getDateRoute( post ) }/${ post.slug }/">${ post.title }</a></h1>
-        <div>${ new Intl.DateTimeFormat( `en-US`, { year: 'numeric' } ).format( post.pubdate ) } ${ new Intl.DateTimeFormat( `en-US`, { month: 'long' } ).format( post.pubdate ) } ${ new Intl.DateTimeFormat( `en-US`, { day: 'numeric' } ).format( post.pubdate ) }</div>
+        <h1><a href="${ getPostRoute( post ) }">${ post.title }</a></h1>
+        <div>${ post.pubdate.getFormatted() }</div>
         <div>
             ${ post.content }
         </div>
@@ -11,7 +11,7 @@ module.exports = post => `
         <ul>
             ${ all(
                 post.categories,
-                cat => `<li><a href="/category/${ cat.slug }/">${ cat.title }</a></li>`
+                cat => `<li><a href="${ getCategoryRoute( cat ) }/">${ cat.title }</a></li>`
             )}
         </ul>
     </article>

@@ -1,7 +1,8 @@
 const { Client } = require( `pg` );
-const { getConfig, slugify } = require( `./utilities` );
+const { slugify } = require( `./utilities` );
 const baseTemplate = require( `../views/base` );
 const { existsSync, mkdirSync, writeFile } = require( `fs` );
+const createPost = require( `./post` );
 
 let client;
 
@@ -66,7 +67,7 @@ const getPostData = posts => Promise.all( posts.map( post => new Promise( ( reso
                         resolveB();
                     }
                 });
-            }))).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
+            }))).catch( reason => console.log( reason ) ).then( () => resolve( res.rows.map( createPost ) ) );
         }
     });
 })));
@@ -183,7 +184,7 @@ module.exports = {
                 reject( err );
             }
             else {
-                getPostData( res.rows ).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
+                getPostData( res.rows ).catch( reason => console.log( reason ) ).then( () => resolve( res.rows.map( createPost ) ) );
             }
         });
     }),
@@ -193,7 +194,7 @@ module.exports = {
                 reject( err );
             }
             else {
-                getPostData( res.rows ).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
+                getPostData( res.rows ).catch( reason => console.log( reason ) ).then( () => resolve( res.rows.map( createPost ) ) );
             }
         });
     }),
@@ -230,7 +231,7 @@ module.exports = {
                             reject( err );
                         }
                         else {
-                            getPostData( res.rows ).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
+                            getPostData( res.rows ).catch( reason => console.log( reason ) ).then( () => resolve( res.rows.map( createPost ) ) );
                         }
                     });
                 }))).then( res => resolve( [].concat.apply( [], res ) ) );
@@ -248,75 +249,69 @@ module.exports = {
 
         });
     }),
-    createHTMLFromPost: post => new Promise( ( resolve, reject ) => {
-        getConfig().then( data => {
-            data.posts = [ post ];
-            const content = baseTemplate( data );
-            client.query( `insert into html (route, content, text) VALUES ( $1, $2, $3 )`, [ post.slug, content, post.content ], ( err, res ) => {
-                if ( err ) {
-                    reject( err );
+    createHTMLFromPost: ( data, post ) => new Promise( ( resolve, reject ) => {
+        data.posts = [ post ];
+        const content = baseTemplate( data );
+        client.query( `insert into html (route, content, text) VALUES ( $1, $2, $3 )`, [ post.slug, content, post.content ], ( err, res ) => {
+            if ( err ) {
+                reject( err );
+            }
+            else {
+                if ( !existsSync( `html/post` ) )
+                {
+                    mkdirSync(`html/post` );
                 }
-                else {
-                    if ( !existsSync( `html/post` ) )
-                    {
-                        mkdirSync(`html/post` );
+                
+                writeFile( `html/post/${ post.slug }.html`, content, err => {
+                    if ( err ) {
+                        reject( err );
                     }
-                    
-                    writeFile( `html/post/${ post.slug }.html`, content, err => {
-                        if ( err ) {
-                            reject( err );
-                        }
-                    });
-                    resolve( res );
-                }
-            });
+                });
+                resolve( res );
+            }
         });
     }),
-    createHTMLFromCategory: function( cat ) {
+    createHTMLFromCategory: function( data, cat ) {
         return new Promise( ( resolve, reject ) => {
-            getConfig().then( data => {
-                this.getPostsByCategory( cat ).then( posts => {
-                    data.posts = posts;
-                    const content = baseTemplate( data );
-                    client.query( `insert into html (route, content, text) VALUES ( $1, $2, $3 )`, [ cat.slug, content, `` ], ( err, res ) => {
-                        if ( err ) {
-                            reject( err );
+            this.getPostsByCategory( cat ).then( posts => {
+                data.posts = posts;
+                const content = baseTemplate( data );
+                client.query( `insert into html (route, content, text) VALUES ( $1, $2, $3 )`, [ cat.slug, content, `` ], ( err, res ) => {
+                    if ( err ) {
+                        reject( err );
+                    }
+                    else {
+                        if ( !existsSync( `html/category` ) )
+                        {
+                            mkdirSync(`html/category` );
                         }
-                        else {
-                            if ( !existsSync( `html/category` ) )
-                            {
-                                mkdirSync(`html/category` );
+                        
+                        writeFile( `html/category/${ cat.slug }.html`, content, err => {
+                            if ( err ) {
+                                reject( err );
                             }
-                            
-                            writeFile( `html/category/${ cat.slug }.html`, content, err => {
-                                if ( err ) {
-                                    reject( err );
-                                }
-                            });
-                            resolve( res );
-                        }
-                    });
+                        });
+                        resolve( res );
+                    }
                 });
             });
         });
     },
-    createHTMLForHome: posts => new Promise( ( resolve, reject ) => {
-        getConfig().then( data => {
-            data.posts = posts;
-            const content = baseTemplate( data );
-            client.query( `insert into html (route, content, text) VALUES ( $1, $2, $3 )`, [ `index`, content, `` ], ( err, res ) => {
-                if ( err ) {
-                    reject( err );
-                }
-                else {
-                    writeFile( `html/index.html`, content, err => {
-                        if ( err ) {
-                            reject( err );
-                        }
-                    });
-                    resolve( res );
-                }
-            });
+    createHTMLForHome: ( data, posts ) => new Promise( ( resolve, reject ) => {
+        data.posts = posts;
+        const content = baseTemplate( data );
+        client.query( `insert into html (route, content, text) VALUES ( $1, $2, $3 )`, [ `index`, content, `` ], ( err, res ) => {
+            if ( err ) {
+                reject( err );
+            }
+            else {
+                writeFile( `html/index.html`, content, err => {
+                    if ( err ) {
+                        reject( err );
+                    }
+                });
+                resolve( res );
+            }
         });
     }),
     searchPosts: query => new Promise( ( resolve, reject ) => {
