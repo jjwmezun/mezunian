@@ -1,6 +1,7 @@
 const { Client } = require( `pg` );
-const createPost = require( `./post` );
-const { slugify } = require( `./utilities` );
+const { getConfig, slugify } = require( `./utilities` );
+const baseTemplate = require( `../views/base` );
+const { existsSync, mkdirSync, writeFile } = require( `fs` );
 
 let client;
 
@@ -25,6 +26,14 @@ const tables = Object.freeze([
         name: `post_category`,
         columns: {},
         references: [ `post`, `category` ]
+    },
+    {
+        name: `html`,
+        columns: {
+            route: `text`,
+            content: `text`,
+            text: `text`
+        }
     }
 ]);
 
@@ -126,7 +135,7 @@ module.exports = {
         };
         masterResolve();
     }),
-    createPost: ( post ) => new Promise( ( resolve, reject ) => {
+    createPost: post => new Promise( ( resolve, reject ) => {
         const pubDate = new Date( post.date );
         if ( post.categories ) {
             post.categories = post.categories.split( /,\s?/ );
@@ -178,7 +187,7 @@ module.exports = {
             }
         });
     }),
-    getPostBySlug: ( slug ) => new Promise( ( resolve, reject ) => {
+    getPostBySlug: slug => new Promise( ( resolve, reject ) => {
         client.query( `select * from post where slug = $1`, [ slug ], ( err, res ) => {
             if ( err ) {
                 reject( err );
@@ -188,7 +197,17 @@ module.exports = {
             }
         });
     }),
-    getCategoryBySlug: ( slug ) => new Promise( ( resolve, reject ) => {
+    getCategories: () => new Promise( ( resolve, reject ) => {
+        client.query( `select * from category`, async ( err, res ) => {
+            if ( err ) {
+                reject( err );
+            }
+            else {
+                resolve( res.rows );
+            }
+        });
+    }),
+    getCategoryBySlug: slug => new Promise( ( resolve, reject ) => {
         client.query( `select * from category where slug = $1`, [ slug ], ( err, res ) => {
             if ( err ) {
                 reject( err );
@@ -198,7 +217,7 @@ module.exports = {
             }
         });
     }),
-    getPostsByCategory: ( cat ) => new Promise( ( resolve, reject ) => {
+    getPostsByCategory: cat => new Promise( ( resolve, reject ) => {
         client.query( `select * from post_category where category_id = $1`, [ cat.category_id ], ( err, res ) => {
             if ( err ) {
                 reject( err );
@@ -216,6 +235,88 @@ module.exports = {
                     });
                 }))).then( res => resolve( [].concat.apply( [], res ) ) );
             }
+        });
+    }),
+    getHTMLByRoute: route => new Promise( ( resolve, reject ) => {
+        client.query( `select * from html where route = $1`, [ route ], ( err, res ) => {
+            if ( err ) {
+                reject( err );
+            }
+            else {
+                resolve( res );
+            }
+
+        });
+    }),
+    createHTMLFromPost: post => new Promise( ( resolve, reject ) => {
+        getConfig().then( data => {
+            data.posts = [ post ];
+            const content = baseTemplate( data );
+            client.query( `insert into html (route, content, text) VALUES ( $1, $2, $3 )`, [ post.slug, content, post.content ], ( err, res ) => {
+                if ( err ) {
+                    reject( err );
+                }
+                else {
+                    if ( !existsSync( `html/post` ) )
+                    {
+                        mkdirSync(`html/post` );
+                    }
+                    
+                    writeFile( `html/post/${ post.slug }.html`, content, err => {
+                        if ( err ) {
+                            reject( err );
+                        }
+                    });
+                    resolve( res );
+                }
+            });
+        });
+    }),
+    createHTMLFromCategory: function( cat ) {
+        return new Promise( ( resolve, reject ) => {
+            getConfig().then( data => {
+                this.getPostsByCategory( cat ).then( posts => {
+                    data.posts = posts;
+                    const content = baseTemplate( data );
+                    client.query( `insert into html (route, content, text) VALUES ( $1, $2, $3 )`, [ cat.slug, content, `` ], ( err, res ) => {
+                        if ( err ) {
+                            reject( err );
+                        }
+                        else {
+                            if ( !existsSync( `html/category` ) )
+                            {
+                                mkdirSync(`html/category` );
+                            }
+                            
+                            writeFile( `html/category/${ cat.slug }.html`, content, err => {
+                                if ( err ) {
+                                    reject( err );
+                                }
+                            });
+                            resolve( res );
+                        }
+                    });
+                });
+            });
+        });
+    },
+    createHTMLForHome: posts => new Promise( ( resolve, reject ) => {
+        getConfig().then( data => {
+            data.posts = posts;
+            const content = baseTemplate( data );
+            client.query( `insert into html (route, content, text) VALUES ( $1, $2, $3 )`, [ `index`, content, `` ], ( err, res ) => {
+                if ( err ) {
+                    reject( err );
+                }
+                else {
+                    writeFile( `html/index.html`, content, err => {
+                        if ( err ) {
+                            reject( err );
+                        }
+                    });
+                    resolve( res );
+                }
+            });
         });
     })
 };

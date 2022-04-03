@@ -5,5 +5,9 @@ require( `dotenv` ).config( { path: path.resolve( process.cwd(), '.env.admin' ) 
 
 db.connect();
 db.clearTables().then( () => {
-    db.initTables().then( () => db.close() );
+    db.initTables().then( () => db.close() ).catch( error => {
+        console.log( error );
+    });
+}).catch( error => {
+    console.log( error );
 });

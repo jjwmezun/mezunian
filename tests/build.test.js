@@ -1,4 +1,3 @@
-const { fstat } = require("fs");
 const path = require( `path` );
 const db = require( `../src/db` );
 require( `dotenv` ).config( { path: path.resolve( process.cwd(), '.env.admin' ) } );

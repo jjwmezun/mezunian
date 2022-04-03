@@ -1,3 +1,5 @@
+const { getDateRoute } = require( `../src/utilities` );
+
 module.exports = ( data ) => `
     <!DOCTYPE html>
     <html lang="en">
@@ -10,7 +12,7 @@ module.exports = ( data ) => `
         data.posts.reduce(
             ( sum, post ) => `${ sum }
                 <article>
-                    <h1><a href="/${ post.pubdate.getFullYear() }/${ post.pubdate.getMonth() }/${ String( post.pubdate.getDate() ).padStart( 2, `0` ) }/${ post.slug }/">${ post.title }</a></h1>
+                    <h1><a href="/${ getDateRoute( post ) }/${ post.slug }/">${ post.title }</a></h1>
                     <div>${ new Intl.DateTimeFormat( `en-US`, { year: 'numeric' } ).format( post.pubdate ) } ${ new Intl.DateTimeFormat( `en-US`, { month: 'long' } ).format( post.pubdate ) } ${ new Intl.DateTimeFormat( `en-US`, { day: 'numeric' } ).format( post.pubdate ) }</div>
                     <div>
                         ${ post.content }
