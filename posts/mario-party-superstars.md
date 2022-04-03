@@ -1,7 +1,7 @@
 ---
 title: Mario Party Superstars
 date: 2021-11-07
-categories: Mario games,bad games
+categories: Mario games, Bad games
 ---
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent suscipit sapien posuere tempor faucibus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam ultrices malesuada dolor eget posuere. Ut ornare rhoncus sapien, vel tempor lorem elementum eget. Fusce quis erat est. Duis vel nisi ac elit bibendum dictum eu a nisl. Fusce suscipit mollis sapien a vehicula. Quisque eget dolor quis arcu viverra posuere. Duis volutpat, risus eget efficitur ornare, lectus mi sollicitudin orci, nec lacinia ligula augue sit amet elit. Cras a ornare lectus, in fringilla ipsum. Pellentesque consequat vitae velit congue sagittis. Phasellus eget sapien sed dui tincidunt mollis.
 

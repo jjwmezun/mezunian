@@ -138,9 +138,39 @@ module.exports = {
     }),
     createPost: post => new Promise( ( resolve, reject ) => {
         const pubDate = new Date( post.date );
+
+        // Generate categories from post meta.
         if ( post.categories ) {
-            post.categories = post.categories.split( /,\s?/ );
+            const cats = [];
+            let state = ``;
+            let current = ``;
+            for ( const letter of post.categories ) {
+                if ( letter === `,` && state === `` ) {
+                    cats.push( current.trim() );
+                    current = ``;
+                }
+                else if ( letter === `"` || letter === `'` ) {
+                    if ( state === letter ) {
+                        state = ``;
+                    }
+                    else if ( state === `` ) {
+                        state = letter;
+                    }
+                    else {
+                        current += letter;
+                    }
+                }
+                else {
+                    current += letter;
+                }
+            }
+            if ( current !== `` ) {
+                cats.push( current.trim() );
+            }
+            post.categories = cats;
         }
+
+        
         client.query( `insert into post (title, content, pubdate, slug) VALUES ( $1, $2, $3, $4 ) returning post_id`, [ post.title, post.content, pubDate, post.slug ], async ( err, res ) => {
             if ( err ) {
                 reject( err );
