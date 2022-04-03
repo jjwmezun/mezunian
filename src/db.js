@@ -318,5 +318,15 @@ module.exports = {
                 }
             });
         });
+    }),
+    searchPosts: query => new Promise( ( resolve, reject ) => {
+        client.query( `select * from post where lower(content) like lower($1) or lower(title) like lower($1)`, [ `%${ query }%` ], ( err, res ) => {
+            if ( err ) {
+                reject( err );
+            }
+            else {
+                getPostData( res.rows ).catch( reason => console.log( reason ) ).then( () => resolve( res.rows ) );
+            }
+        });
     })
 };

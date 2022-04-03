@@ -19,6 +19,10 @@ module.exports = ( data ) => `
                         </li>
                     `)}</ul>
                 `)}</nav>
+                <form action="/" method="get">
+                    <input type="text" name="s" placeholder="Search" />
+                    <input type="submit" value="Search" />
+                </form>
             </header>
             ${ all( data.posts, postTemplate ) }
         </body>

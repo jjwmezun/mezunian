@@ -1,6 +1,8 @@
 const express = require( `express` );
 const { readFile } = require( `fs` );
 const db = require( `../src/db` );
+const { getConfig } = require( `../src/utilities` );
+const baseTemplate = require( `../views/base`);
 
 require( `dotenv` ).config();
 
@@ -12,18 +14,31 @@ const serverErrorPage = function( res, reason ) {
 };
 
 app.get( `/`, ( req, res ) => {
-	readFile( `html/index.html`, ( err, data ) => {
-		if ( err ) {
-			serverErrorPage( res, err );
-		}
-		else if ( data === undefined ) {
-			res.status( 404 );
-			res.send( `404 George` );
-		}
-		else {
-			res.send( data.toString() );
-		}
-	});
+	if ( req && req.query && req.query.s ) {
+		db.connect();
+		db.searchPosts( req.query.s ).then( posts => {
+			getConfig().then( data => {
+				data.posts = posts;
+				console.log( data );
+				res.send( baseTemplate( data ) );
+				db.close();
+			});
+		});
+	}
+	else {
+		readFile( `html/index.html`, ( err, data ) => {
+			if ( err ) {
+				serverErrorPage( res, err );
+			}
+			else if ( data === undefined ) {
+				res.status( 404 );
+				res.send( `404 George` );
+			}
+			else {
+				res.send( data.toString() );
+			}
+		});
+	}
 });
 
 app.get( `/category/*`, ( req, res ) => {
