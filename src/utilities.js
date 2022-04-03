@@ -18,5 +18,7 @@ module.exports = {
             }
         }); 
     }),
-    getDateRoute: post => `${ post.pubdate.getFullYear() }/${ post.pubdate.getMonth() }/${ String( post.pubdate.getDate() ).padStart( 2, `0` ) }`
+    getDateRoute: post => `${ post.pubdate.getFullYear() }/${ post.pubdate.getMonth() }/${ String( post.pubdate.getDate() ).padStart( 2, `0` ) }`,
+    all: ( list, f ) => list.map( f ).join( `` ),
+    cond: ( condition, mainOut, otherOut ) => condition ? mainOut : ( otherOut === undefined ) ? `` : otherOut
 };
