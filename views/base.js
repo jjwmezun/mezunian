@@ -5,6 +5,7 @@ module.exports = ( data ) => `
     <!DOCTYPE html>
         <html lang="en">
         <head>
+            <link href="/assets/main.css" rel="stylesheet">
         </head>
         <body>
             <header>
@@ -24,6 +25,9 @@ module.exports = ( data ) => `
                     <input type="submit" value="Search" />
                 </form>
             </header>
+            <div>
+                <img src="/assets/images/cats.jpg" alt="">
+            </div>
             <main>
                 ${ all( data.posts, postTemplate ) }
             </main>

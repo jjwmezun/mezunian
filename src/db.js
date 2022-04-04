@@ -170,7 +170,6 @@ module.exports = {
             post.categories = cats;
         }
 
-        
         client.query( `insert into post (title, content, pubdate, slug) VALUES ( $1, $2, $3, $4 ) returning post_id`, [ post.title, post.content, pubDate, post.slug ], async ( err, res ) => {
             if ( err ) {
                 reject( err );
