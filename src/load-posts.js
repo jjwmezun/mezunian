@@ -1,6 +1,7 @@
 const { readdir, readFile } = require( `fs` );
 const MarkdownIt = require( `markdown-it` );
 const path = require( `path` );
+const mtmlToHtml = require( `./mtml-to-html` );
 
 module.exports = () => new Promise( ( resolve, reject ) => {
     readdir( `posts`, ( err, files ) => {
@@ -34,8 +35,7 @@ module.exports = () => new Promise( ( resolve, reject ) => {
                         dict[ key ] = value.trim();
                         return dict;
                     }, {} );
-                    const body = md.render( text.substr( headerEnd + 4 ) );
-                    post.content = body;
+                    post.content = mtmlToHtml(text.substring( headerEnd + 4 ));
                     post.slug = path.parse( file ).name;
                     resolve( post );
                 });

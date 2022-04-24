@@ -3,6 +3,16 @@ title: Laughter
 date: 2018-04-14
 categories: Crazy
 ---
+
+            <figure>
+                <figcaption><b>Accompanying music:</b></figcaption>
+                <audio controls>
+                    <source src="/assets/music/a.ogg" type="audio/ogg">
+                    <source controls src="/assets/music/a.mp3" type="audio/mpeg">
+                    Your browser does not support the <code>audio</code> element.
+                </audio>
+            </figure>
+
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent suscipit sapien posuere tempor faucibus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam ultrices malesuada dolor eget posuere. Ut ornare rhoncus sapien, vel tempor lorem elementum eget. Fusce quis erat est. Duis vel nisi ac elit bibendum dictum eu a nisl. Fusce suscipit mollis sapien a vehicula. Quisque eget dolor quis arcu viverra posuere. Duis volutpat, risus eget efficitur ornare, lectus mi sollicitudin orci, nec lacinia ligula augue sit amet elit. Cras a ornare lectus, in fringilla ipsum. Pellentesque consequat vitae velit congue sagittis. Phasellus eget sapien sed dui tincidunt mollis.
 
 In bibendum efficitur dui eu eleifend. Maecenas laoreet eros quis blandit dignissim. Vestibulum varius, dui sit amet interdum pretium, odio nisi vestibulum turpis, in tempor sapien nibh id libero. Donec pharetra ipsum sem, at facilisis tortor lacinia nec. Etiam tempus congue vehicula. Nulla facilisi. Etiam laoreet augue nunc, quis varius odio accumsan nec. Nullam non pretium est, eu varius diam. Praesent ac feugiat dolor, sit amet efficitur nulla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;
